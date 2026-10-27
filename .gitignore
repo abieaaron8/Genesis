@@ -1,0 +1,25 @@
+# Models
+backend/models/
+*.safetensors
+*.bin
+*.pt
+
+# Datasets
+backend/data/
+data/
+*.csv
+
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environments
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
