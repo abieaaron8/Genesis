@@ -29,21 +29,19 @@ try:
 except Exception:
     StateGraph = None
 
+# Compatibility bridge: this module historically lived beside the `agents/`
+# directory. Expose that directory as a package path before importing its
+# submodules so `backend.agents.<module>` works from the project root.
 AGENTS_DIR = os.path.join(os.path.dirname(__file__), "agents")
-if AGENTS_DIR not in sys.path:
-    sys.path.append(AGENTS_DIR)
-
-from claim_analyzer import analyze_claim
-from defender import run_defender
-from judge import run_judge
-from prosecutor import run_prosecutor
-from rag.retriever import retrieve_evidence
-from services.credibility_service import calculate_credibility
-from state import VerificationState
-
-# Compatibility bridge: allow imports like `from agents.judge import run_judge`
-# while keeping this file as the runtime module used by main.py.
 __path__ = [AGENTS_DIR]
+
+from backend.agents.claim_analyzer import analyze_claim
+from backend.agents.defender import run_defender
+from backend.agents.judge import run_judge
+from backend.agents.prosecutor import run_prosecutor
+from backend.rag.retriever import retrieve_evidence
+from backend.services.credibility_service import calculate_credibility
+from backend.state import VerificationState
 
 LOGGER = logging.getLogger("veritas.graph")
 
@@ -874,9 +872,12 @@ async def decompose_claim(claim: str) -> list:
     if not text:
         return []
 
+    # "and" commonly joins the entities in one factual claim
+    # (for example, "India and Pakistan fought wars"). Splitting it
+    # discards the relationship that retrieval needs to search for.
     parts = [
         p.strip(" ,.;")
-        for p in re.split(r"\band\b|\bbut\b|\bwhile\b", text, flags=re.IGNORECASE)
+        for p in re.split(r"\bbut\b|\bwhile\b", text, flags=re.IGNORECASE)
         if p.strip(" ,.;")
     ]
     return parts[:3] if parts else [text]

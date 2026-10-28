@@ -19,22 +19,40 @@ The module NEVER raises out of search_tavily(); on any failure it returns
 import logging
 import os
 import re
+from pathlib import Path
 from typing import Dict, List, Tuple
 from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
 try:
-    from credibility import score_source
+    from backend.credibility import score_source
 except Exception:  # pragma: no cover - defensive import
     def score_source(url: str) -> float:
         return 0.5
 
 LOGGER = logging.getLogger("veritas.tavily")
 
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
 
-TAVILY_API_KEY = (os.getenv("TAVILY_API_KEY") or "").strip()
+def _is_placeholder_key(value: str) -> bool:
+    """Return True when a key looks like an unfilled template placeholder.
+    ROOT CAUSE FIX: same issue as retriever.py — placeholder values are truthy."""
+    lower = (value or "").lower()
+    return (
+        "your-" in lower
+        or lower.startswith("your_")
+        or "placeholder" in lower
+        or lower.endswith("-here")
+        or lower.endswith("_here")
+        or lower == "changeme"
+        or lower == "none"
+        or lower == "null"
+    )
+
+
+_raw_tavily = (os.getenv("TAVILY_API_KEY") or "").strip()
+TAVILY_API_KEY = "" if _is_placeholder_key(_raw_tavily) else _raw_tavily
 TAVILY_SEARCH_DEPTH = (os.getenv("TAVILY_SEARCH_DEPTH") or "advanced").strip()
 TAVILY_MAX_RESULTS = int(os.getenv("TAVILY_MAX_RESULTS", "10"))
 TAVILY_INCLUDE_RAW_CONTENT = os.getenv("TAVILY_INCLUDE_RAW_CONTENT", "1") != "0"

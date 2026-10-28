@@ -9,7 +9,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from database import User, get_db
+from backend.database import User, get_db
 
 load_dotenv()
 

@@ -4,7 +4,7 @@ import re
 from datetime import datetime, timezone
 from typing import Dict, List, Sequence, Tuple
 
-from credibility import score_source
+from backend.credibility import score_source
 
 STOPWORDS = {
     "the",

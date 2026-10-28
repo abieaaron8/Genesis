@@ -1,5 +1,5 @@
-from llm_client import call_reasoning, extract_json
-from services.evidence_classifier import classify_evidence
+from backend.llm_client import call_reasoning, extract_json
+from backend.services.evidence_classifier import classify_evidence
 import logging
 import os
 import traceback

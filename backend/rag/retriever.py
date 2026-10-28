@@ -16,12 +16,12 @@ import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
-from credibility import score_source
-from llm_client import OLLAMA_ANALYZER, call_ollama, extract_json
-from rag.embeddings import embed_query, embed_texts
-from rag.faiss_store import FaissStore
-from rag.tavily_client import search_tavily, tavily_available
-from services.ranking_service import compare_retrieval_modes, extract_keywords, rank_articles, recency_score
+from backend.credibility import score_source
+from backend.llm_client import OLLAMA_ANALYZER, call_ollama, extract_json
+from backend.rag.embeddings import embed_query, embed_texts
+from backend.rag.faiss_store import FaissStore
+from backend.rag.tavily_client import search_tavily, tavily_available
+from backend.services.ranking_service import compare_retrieval_modes, extract_keywords, rank_articles, recency_score
 
 LOGGER = logging.getLogger("veritas.retriever")
 
@@ -29,8 +29,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DOTENV_PATH = BASE_DIR / ".env"
 load_dotenv(dotenv_path=DOTENV_PATH)
 
-SERPAPI_KEY = (os.getenv("SERPAPI_API_KEY") or os.getenv("SERPAPI_KEY") or "").strip()
-NEWSAPI_KEY = (os.getenv("NEWS_API_KEY") or os.getenv("NEWSAPI_KEY") or "").strip()
+def _is_placeholder_key(value: str) -> bool:
+    """Return True when a key looks like an unfilled template placeholder.
+
+    ROOT CAUSE FIX: placeholder values like 'your-serpapi-key-here' are truthy
+    strings, so the guards (``if not SERPAPI_KEY``) never fired and the retrieval
+    pipeline made real HTTP requests to SerpAPI/NewsAPI with invalid credentials.
+    Each call attempted 2 retries with 15-25 s timeouts → ~3 min of blocking I/O
+    per verify request, far exceeding the browser's 60 s axios timeout.
+    """
+    lower = (value or "").lower()
+    return (
+        "your-" in lower
+        or lower.startswith("your_")
+        or "placeholder" in lower
+        or lower.endswith("-here")
+        or lower.endswith("_here")
+        or lower == "changeme"
+        or lower == "none"
+        or lower == "null"
+    )
+
+
+_raw_serpapi = (os.getenv("SERPAPI_API_KEY") or os.getenv("SERPAPI_KEY") or "").strip()
+_raw_newsapi = (os.getenv("NEWS_API_KEY") or os.getenv("NEWSAPI_KEY") or "").strip()
+SERPAPI_KEY = "" if _is_placeholder_key(_raw_serpapi) else _raw_serpapi
+NEWSAPI_KEY = "" if _is_placeholder_key(_raw_newsapi) else _raw_newsapi
 
 
 def _mask_secret(value: str | None) -> str | None:

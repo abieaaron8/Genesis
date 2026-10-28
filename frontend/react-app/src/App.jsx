@@ -1,9 +1,7 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { usePopper } from "react-popper";
-import AOS from "aos";
-import "aos/dist/aos.css";
 
 import Home from "./pages/Home";
 import History from "./pages/History";
@@ -18,7 +16,7 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const isAuthRoute = location.pathname === "/login" || location.pathname === "/register";
-  const [theme, setTheme] = useState(localStorage.getItem("veritas-theme") || "dark");
+  const theme = "light";
   const [currentUser, setCurrentUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -36,10 +34,6 @@ function App() {
       },
     ],
   });
-
-  useEffect(() => {
-    AOS.init({ duration: 800, once: true });
-  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -73,8 +67,6 @@ function App() {
     setProfileOpen(false);
   }, [location.pathname]);
 
-  const toggleTheme = () => setTheme((current) => (current === "dark" ? "light" : "dark"));
-
   const initials = useMemo(() => {
     if (!currentUser?.username) return "U";
     return currentUser.username.slice(0, 2).toUpperCase();
@@ -91,65 +83,38 @@ function App() {
   return (
     <div className={`app-shell ${isAuthRoute ? "auth-layout" : ""}`}>
       {!isAuthRoute && (
-        <motion.header 
-          className="top-nav"
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 20 }}
-        >
-          <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            VeritasAI
-          </motion.h1>
+        <header className="top-nav">
+          <h1>Genesis</h1>
           <nav>
-            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/" className={`nav-link-btn nav-home ${location.pathname === "/" ? "active" : ""}`}>Home</Link>
-            </motion.div>
-            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/history" className={`nav-link-btn nav-history ${location.pathname === "/history" ? "active" : ""}`}>History</Link>
-            </motion.div>
-            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/stats" className={`nav-link-btn nav-stats ${location.pathname === "/stats" ? "active" : ""}`}>Stats</Link>
-            </motion.div>
+            <Link to="/" className={`nav-link-btn nav-home ${location.pathname === "/" ? "active" : ""}`}>Verify</Link>
+            <Link to="/history" className={`nav-link-btn nav-history ${location.pathname === "/history" ? "active" : ""}`}>History</Link>
+            <Link to="/stats" className={`nav-link-btn nav-stats ${location.pathname === "/stats" ? "active" : ""}`}>Stats</Link>
 
             {!loadingUser && !currentUser && (
               <>
-                <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
-                  <Link to="/login" className={`nav-link-btn ${location.pathname === "/login" ? "active" : ""}`}>Login</Link>
-                </motion.div>
-                <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
-                  <Link to="/register" className={`nav-link-btn ${location.pathname === "/register" ? "active" : ""}`}>Sign Up</Link>
-                </motion.div>
+                <Link to="/login" className={`nav-link-btn ${location.pathname === "/login" ? "active" : ""}`}>Login</Link>
+                <Link to="/register" className={`nav-link-btn ${location.pathname === "/register" ? "active" : ""}`}>Sign up</Link>
               </>
             )}
 
             {!loadingUser && currentUser && (
               <div className="profile-menu-wrap">
-                <motion.button 
+                <button
                   ref={setReferenceElement}
                   className="profile-chip" 
                   onClick={() => setProfileOpen((v) => !v)}
-                  whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(108, 99, 255, 0.5)" }}
-                  whileTap={{ scale: 0.98 }}
                 >
                   <span className="profile-avatar">{initials}</span>
                   <span className="profile-name">{currentUser.username}</span>
-                </motion.button>
+                </button>
                 
                 <AnimatePresence>
                   {profileOpen && (
-                    <motion.div 
+                    <div
                       ref={setPopperElement}
                       style={styles.popper}
                       {...attributes.popper}
                       className="profile-menu"
-                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
                     >
                       <p className="profile-email">{currentUser.email}</p>
                       <Link to="/profile" className="menu-link">
@@ -158,22 +123,14 @@ function App() {
                       <button className="menu-link logout-btn" onClick={logout}>
                         Logout
                       </button>
-                    </motion.div>
+                    </div>
                   )}
                 </AnimatePresence>
               </div>
             )}
 
-            <motion.button 
-              className="theme-btn" 
-              onClick={toggleTheme}
-              whileHover={{ scale: 1.05, rotate: theme === "dark" ? 30 : -30 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              {theme === "dark" ? "☀ Light" : "🌙 Dark"}
-            </motion.button>
           </nav>
-        </motion.header>
+        </header>
       )}
 
       <div className="page-transition-wrapper">

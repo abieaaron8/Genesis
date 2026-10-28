@@ -5,7 +5,7 @@ score_source() is intentionally kept as a 0-1 return value because ranking,
 judge, and legacy modules already consume that API.
 """
 
-from services.credibility_service import calculate_credibility
+from backend.services.credibility_service import calculate_credibility
 
 
 def score_source(url: str) -> float:

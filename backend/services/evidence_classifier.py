@@ -1,7 +1,7 @@
 import logging
 import os
 import re
-from llm_client import call_ollama, extract_json
+from backend.llm_client import call_ollama, extract_json
 
 LOGGER = logging.getLogger("veritas.evidence_classifier")
 ENABLE_EVIDENCE_CLASSIFIER_LLM = os.getenv("VERITAS_ENABLE_EVIDENCE_CLASSIFIER_LLM", "0") == "1"

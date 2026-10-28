@@ -1,86 +1,34 @@
+import { Check, Circle, LoaderCircle, X } from "lucide-react";
 import { motion } from "framer-motion";
 
 const STAGES = [
-  { key: "claim_analysis", label: "Claim analyzed" },
-  { key: "retrieval", label: "Evidence retrieved" },
-  { key: "agent_reasoning", label: "Agents reasoning" },
-  { key: "verdict", label: "Verdict ready" },
+  ["claim_analysis", "Claim read"],
+  ["retrieval", "Sources found"],
+  ["agent_reasoning", "Evidence weighed"],
+  ["verdict", "Verdict"],
 ];
 
-function StatusIcon({ status }) {
-  // status is now "pending", "running", "completed", or "failed"
-  if (status === "completed") return <span style={{ color: "#16a34a" }}>✅</span>;
-  if (status === "running") return <span style={{ color: "#f59e0b" }}>⏳</span>;
-  if (status === "failed") return <span style={{ color: "#ef4444" }}>⚠️</span>;
-  return <span style={{ color: "#9ca3af" }}>●</span>;
-}
+const Icon = ({ status }) => {
+  if (status === "completed") return <Check size={13} />;
+  if (status === "failed") return <X size={13} />;
+  if (status === "running") return <LoaderCircle size={13} className="spin-soft" />;
+  return <Circle size={10} />;
+};
 
 export default function PipelineProgress({ stages = {}, pipelineMessage = "" }) {
-  const totalStages = STAGES.length;
-  
-  // Count completed stages
-  const completedStages = STAGES.reduce((count, entry) => {
-    const status = stages?.[entry.key] || "pending";
-    return count + (status === "completed" ? 1 : 0);
-  }, 0);
-  
-  const progress = Math.min(100, Math.max(0, (completedStages / totalStages) * 100));
-  
-  // Find first incomplete stage (either running or pending)
-  const firstIncomplete = STAGES.findIndex((entry) => {
-    const status = stages?.[entry.key] || "pending";
-    return status !== "completed";
-  });
-
   return (
-    <div className="pipeline-progress-shell">
-      <div className="pipeline-track">
-        <motion.div
-          className="pipeline-track-fill"
-          initial={false}
-          animate={{ width: `${progress}%` }}
-          transition={{ type: "spring", stiffness: 180, damping: 24 }}
-        />
-        {STAGES.map((s, idx) => {
-          const status = stages?.[s.key] || "pending";
-          
-          // Determine display status for styling
-          let displayStatus = "pending";
-          if (status === "completed") {
-            displayStatus = "done";
-          } else if (status === "running" && idx === firstIncomplete) {
-            displayStatus = "inflight";
-          } else if (status === "failed") {
-            displayStatus = "failed";
-          }
-
-          return (
-            <motion.div
-              key={s.key}
-              className={`pipeline-step-card ${displayStatus}`}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.08, type: "spring", stiffness: 220, damping: 20 }}
-              whileHover={{ y: -2, scale: 1.01 }}
-            >
-              <div className="pipeline-step-icon">
-                <StatusIcon status={status} />
-              </div>
-              <div className="pipeline-step-copy">
-                <span className="pipeline-step-label">{s.label}</span>
-                <span className="pipeline-step-state">
-                  {status === "completed" ? "Completed" : status === "running" ? "Active now" : status === "failed" ? "Failed" : "Waiting"}
-                </span>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-      {pipelineMessage && (
-        <motion.div className="pipeline-message" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-          {pipelineMessage}
-        </motion.div>
-      )}
+    <div className="timeline">
+      <div className="timeline-line" />
+      {STAGES.map(([key, label]) => {
+        const status = stages[key] || "pending";
+        return (
+          <div key={key} className={`timeline-step timeline-${status}`}>
+            <div className="timeline-marker"><Icon status={status} /></div>
+            <span>{label}</span>
+          </div>
+        );
+      })}
+      {pipelineMessage && <motion.p className="timeline-message" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{pipelineMessage}</motion.p>}
     </div>
   );
 }

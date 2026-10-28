@@ -17,18 +17,18 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from agents import calculate_disagreement_score, decompose_claim, run_claim_graph
-from auth import (
+from backend.agents import calculate_disagreement_score, decompose_claim, run_claim_graph
+from backend.auth import (
     create_access_token,
     get_current_user,
     get_password_hash,
     verify_password,
     verify_token,
 )
-from credibility import score_source
-from services.credibility_service import calculate_credibility
-from services.evidence_classifier import classify_evidence
-from database import (
+from backend.credibility import score_source
+from backend.services.credibility_service import calculate_credibility
+from backend.services.evidence_classifier import classify_evidence
+from backend.database import (
     ClaimHistory,
     SessionLocal,
     User,
@@ -38,11 +38,11 @@ from database import (
     init_db,
     save_cached_result,
 )
-from filters import prioritize_trusted, remove_low_quality, remove_self_source
-from graph import GraphStore
-from pdf_export import generate_verdict_pdf
-from rag_core import build_context, rank_with_faiss
-from services.model_service import ModelServiceError, get_model_service
+from backend.filters import prioritize_trusted, remove_low_quality, remove_self_source
+from backend.graph import GraphStore
+from backend.pdf_export import generate_verdict_pdf
+from backend.rag_core import build_context, rank_with_faiss
+from backend.services.model_service import ModelServiceError, get_model_service
 
 logging.basicConfig(
     level=logging.INFO,
@@ -179,7 +179,7 @@ def _parse_cors_origins(raw_value: str | None) -> List[str]:
     if not raw_value:
         return default_origins
     parsed = [origin.strip() for origin in raw_value.split(",") if origin.strip()]
-    return parsed or default_origins
+    return list(dict.fromkeys(default_origins + parsed))
 
 app = FastAPI(title="VeritasAI")
 
@@ -1794,7 +1794,7 @@ def verify_claim(payload: ClaimRequest, request: Request, db: Session = Depends(
         if not analysis_pool and not analysis_early_stop:
             logger.warning("[Verify] Graph retriever returned no evidence; retrying via unified retriever")
             current_stage = "retrieval"
-            from rag.retriever import retrieve_evidence as _unified_retrieve
+            from backend.rag.retriever import retrieve_evidence as _unified_retrieve
 
             fallback_rows, fallback_meta = _unified_retrieve(
                 claim=pipeline_claim,
@@ -2190,7 +2190,7 @@ def verify_claim(payload: ClaimRequest, request: Request, db: Session = Depends(
         response_payload["cache_hit"] = False
         response_payload["cache_source"] = "fresh"
 
-        print(json.dumps(response_payload, indent=2))
+        logger.debug("[PIPELINE] Response payload validated for claim=%r", claim)
 
         if _validate_verify_payload(response_payload, context="verify-final") is None:
             raise ValueError("verify-final response failed contract validation")
@@ -2213,8 +2213,7 @@ def verify_claim(payload: ClaimRequest, request: Request, db: Session = Depends(
     except Exception as e:
         tb = traceback.format_exc()
         failed_stage = locals().get("current_stage", "pipeline")
-        print(f"[API] CRITICAL ERROR in /api/verify:")
-        print(tb)
+        logger.error("[API] CRITICAL ERROR in /api/verify:\n%s", tb)
         logger.exception("[PIPELINE] FULL ERROR TRACE stage=%s", failed_stage)
 
         fallback = {
@@ -2554,7 +2553,7 @@ def get_trending(db: Session = Depends(get_db)):
 
 @app.get("/api/health")
 async def health_check():
-    from llm_client import test_all_connections
+    from backend.llm_client import test_all_connections
     import os
 
     status = test_all_connections()

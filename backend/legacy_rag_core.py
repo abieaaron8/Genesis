@@ -4,7 +4,7 @@ from typing import Dict, List
 
 import faiss
 import numpy as np
-from credibility import score_source
+from backend.credibility import score_source
 
 
 def _tokenize(text: str) -> List[str]:

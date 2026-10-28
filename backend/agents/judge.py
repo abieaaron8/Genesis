@@ -1,7 +1,7 @@
 import re
 import os
 
-from llm_client import call_reasoning, extract_json
+from backend.llm_client import call_reasoning, extract_json
 import traceback
 
 ENABLE_LLM_AGENTS = os.getenv("VERITAS_ENABLE_LLM_AGENTS", "0") == "1"

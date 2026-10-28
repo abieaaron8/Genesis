@@ -10,7 +10,10 @@ const apiBaseUrl =
 
 const api = axios.create({
   baseURL: apiBaseUrl,
-  timeout: 300000,
+  // Keep the UI bounded when an external evidence provider is unavailable.
+  // The backend response contract is unchanged; Home.jsx clears its loading
+  // state from the rejected request in its finally block.
+  timeout: 60000,
 });
 
 export const setAuthToken = (token) => {

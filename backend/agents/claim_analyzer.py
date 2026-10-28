@@ -1,7 +1,7 @@
 import re
 import os
 
-from llm_client import OLLAMA_ANALYZER, call_ollama, extract_json
+from backend.llm_client import OLLAMA_ANALYZER, call_ollama, extract_json
 
 ENABLE_CLAIM_ANALYZER_LLM = os.getenv("VERITAS_ENABLE_CLAIM_ANALYZER_LLM", "0") == "1"
 

@@ -14,18 +14,37 @@ import os
 import re
 import time
 import traceback
+from pathlib import Path
 
 import requests as http_requests
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
 
 LOGGER = logging.getLogger("veritas.llm")
 
 # ============================================================
 # GEMINI CONFIGURATION
 # ============================================================
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+def _is_placeholder_key(value: str) -> bool:
+    """Detect unfilled template placeholders so they're treated as missing keys.
+    ROOT CAUSE FIX: placeholder values like 'your-gemini-api-key-here' are truthy
+    strings but not valid API keys, causing requests that hang or error slowly."""
+    lower = (value or "").lower()
+    return (
+        "your-" in lower
+        or lower.startswith("your_")
+        or "placeholder" in lower
+        or lower.endswith("-here")
+        or lower.endswith("_here")
+        or lower == "changeme"
+        or lower == "none"
+        or lower == "null"
+    )
+
+
+_raw_gemini = os.getenv("GEMINI_API_KEY", "").strip()
+GEMINI_API_KEY = "" if _is_placeholder_key(_raw_gemini) else _raw_gemini
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 gemini_available = bool(GEMINI_API_KEY and GEMINI_API_KEY != "DISABLED")
@@ -69,7 +88,8 @@ def _safe_gemini_text(response) -> str:
 # ============================================================
 # Groq offers a fast, reliable free tier and is used as the primary reasoning
 # provider for prosecutor/defender/judge. Gemini and Ollama are fallbacks.
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
+_raw_groq = os.getenv("GROQ_API_KEY", "").strip()
+GROQ_API_KEY = "" if _is_placeholder_key(_raw_groq) else _raw_groq
 GROQ_MODEL = os.getenv("GROQ_JUDGE_MODEL", "llama-3.3-70b-versatile").strip()
 groq_available = bool(GROQ_API_KEY and GROQ_API_KEY != "DISABLED")
 _groq_disabled_until = 0.0
