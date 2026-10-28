@@ -4,7 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-echo "Starting VeritasAI Backend..."
+echo "Starting Genesis Backend..."
 if [ ! -f /.requirements_installed ]; then
 	echo "Installing Python requirements..."
 	python3 -m pip install -r requirements.txt || true

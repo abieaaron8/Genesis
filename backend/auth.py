@@ -13,7 +13,7 @@ from backend.database import User, get_db
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY", "veritas_super_secret_key_2024")
+SECRET_KEY = os.getenv("SECRET_KEY", "genesis_super_secret_key_2024")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
 

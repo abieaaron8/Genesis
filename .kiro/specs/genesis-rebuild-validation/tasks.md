@@ -2,13 +2,13 @@
 
 ## Overview
 
-VeritasAI Reset, Rebuild, Fix & Validate. Local-development mode is primary; Docker is rebuilt and validated after local is green. Tasks are ordered so the system stays runnable throughout. Each task references the requirements and/or design properties it satisfies.
+Genesis Reset, Rebuild, Fix & Validate. Local-development mode is primary; Docker is rebuilt and validated after local is green. Tasks are ordered so the system stays runnable throughout. Each task references the requirements and/or design properties it satisfies.
 
 ## Tasks
 
 - [ ] 1. Phase 2 cleanup — stop project processes and Docker resources (scoped)
   - Stop project processes only: `pkill -f "uvicorn main:app"`, project `vite`/`npm run dev`, project python backend.
-  - Bring down the project's compose stack: `docker compose down` from project root; remove only `veritas_*`/project-prefixed containers, networks, volumes, images.
+  - Bring down the project's compose stack: `docker compose down` from project root; remove only `genesis_*`/project-prefixed containers, networks, volumes, images.
   - Do NOT touch shared Ollama or unrelated containers; leave shared Ollama running.
   - Capture before/after `docker ps`, `ps`, and port checks (8000/5173/11434) into a cleanup report.
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
@@ -46,7 +46,7 @@ VeritasAI Reset, Rebuild, Fix & Validate. Local-development mode is primary; Doc
 - [x] 4.1 Wire Tavily-first provider gather into retriever.py
   - Add `_gather_from_providers(query, top_n)` calling Tavily → SerpAPI → NewsAPI in order; concatenate with per-provider counts and logs; record attempt order in `meta`.
   - Update `retrieve_evidence` to use the gather function for every query variant, then merge → `_dedupe` → prefilter/rule filters → optional FAISS re-rank → top-k; include provider counts (`tavily/serpapi/newsapi`), `prefilter_stats`, `filter_stats`, `queries`, `retrieved_count`, `top_k` in `meta`.
-  - Make the unified path run Tavily-first regardless of `VERITAS_USE_ADVANCED_RAG`; the flag now only gates the optional FAISS re-rank stage (documented).
+  - Make the unified path run Tavily-first regardless of `GENESIS_USE_ADVANCED_RAG`; the flag now only gates the optional FAISS re-rank stage (documented).
   - Add a thin `retrieve_for_api(claim, ...)` wrapper (or expose `retrieve_evidence`) for `main.py`.
   - Keep `legacy/` fallback dataset (`_load_local_fallback`) as the final tier only.
   - _Requirements: 4.3, 4.7, 5.1, 5.3, 5.4_

@@ -146,7 +146,7 @@ for i, test in enumerate(TESTS):
     print(f"  {icon} {test['name']}")
 
 if all(results):
-    print("\n🎉 ALL 4 TESTS PASSED. VeritasAI is working!")
+    print("\n🎉 ALL 4 TESTS PASSED. Genesis is working!")
     sys.exit(0)
 else:
     failed = sum(1 for r in results if not r)

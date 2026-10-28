@@ -10,7 +10,7 @@ import numpy as np
 
 from rag.embeddings import embed_query
 
-LOGGER = logging.getLogger("veritas.semantic_cache")
+LOGGER = logging.getLogger("genesis.semantic_cache")
 
 DEFAULT_TTL_SECONDS = int(os.getenv("SEMANTIC_CACHE_TTL_SECONDS", "86400"))
 DEFAULT_MAX_ITEMS = int(os.getenv("SEMANTIC_CACHE_MAX_ITEMS", "200"))

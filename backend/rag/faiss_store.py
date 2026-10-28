@@ -8,7 +8,7 @@ try:
 except Exception:
     faiss = None
 
-LOGGER = logging.getLogger("veritas.rag.faiss")
+LOGGER = logging.getLogger("genesis.rag.faiss")
 
 
 class FaissStore:

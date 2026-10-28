@@ -1,1 +1,1 @@
-"""Service layer helpers for VeritasAI."""
+"""Service layer helpers for Genesis."""

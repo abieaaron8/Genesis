@@ -1,5 +1,5 @@
 """
-state.py — VeritasAI Verification Pipeline State Model
+state.py — Genesis Verification Pipeline State Model
 
 Pydantic-based shared state for LangGraph nodes.
 All pipeline stages read/write this state.

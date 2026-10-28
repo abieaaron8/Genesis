@@ -11,9 +11,9 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship,
 
 load_dotenv()
 
-logger = logging.getLogger("veritas.database")
+logger = logging.getLogger("genesis.database")
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./veritas.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./genesis.db")
 
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine = create_engine(DATABASE_URL, connect_args=connect_args)
@@ -25,7 +25,7 @@ def _sqlite_path() -> str:
         return DATABASE_URL.replace("sqlite:///", "", 1)
     if DATABASE_URL.startswith("sqlite://"):
         return DATABASE_URL.replace("sqlite://", "", 1)
-    return "veritas.db"
+    return "genesis.db"
 
 
 class Base(DeclarativeBase):

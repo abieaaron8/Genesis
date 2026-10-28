@@ -127,7 +127,7 @@ function Login() {
       if (!token) {
         throw new Error("Missing token");
       }
-      localStorage.setItem("veritas-token", token);
+      localStorage.setItem("genesis-token", token);
       api.setAuthToken(token);
       navigate("/");
     } catch {
@@ -148,7 +148,7 @@ function Login() {
         >
           <div className="va-auth-logo">
             <ShieldIcon />
-            <span>VeritasAI</span>
+            <span>Genesis</span>
           </div>
 
           <h1 className="va-auth-heading">Welcome Back</h1>
@@ -235,7 +235,7 @@ function Login() {
           </p>
 
           <div className="va-footer">
-            <span>Copyright © 2025 VeritasAI</span>
+            <span>Copyright © 2025 Genesis</span>
             <a href="#">Privacy Policy</a>
           </div>
         </motion.section>

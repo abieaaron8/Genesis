@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Full Pipeline Test Suite for VeritasAI
+Full Pipeline Test Suite for Genesis
 Tests all 10 phases of the stabilization effort
 """
 
@@ -202,7 +202,7 @@ async def test_evidence_grounding(results):
 async def run_all_tests():
     """Run all test phases"""
     print("\n" + "="*80)
-    print("VERITAS AI - FULL SYSTEM TEST SUITE")
+    print("GENESIS AI - FULL SYSTEM TEST SUITE")
     print("="*80)
     print(f"Start time: {datetime.now().isoformat()}")
     
@@ -237,7 +237,7 @@ async def run_all_tests():
     print(f"Duration: {summary['duration_seconds']:.1f}s")
     
     # Save results
-    results_file = "/tmp/veritas-test-results.json"
+    results_file = "/tmp/genesis-test-results.json"
     with open(results_file, "w") as f:
         json.dump(summary, f, indent=2)
     print(f"\nDetailed results saved to: {results_file}")

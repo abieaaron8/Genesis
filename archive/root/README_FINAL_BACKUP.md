@@ -1,11 +1,11 @@
 <div align="center">
 
-# VeritasAI 🔎🧠⚖️
+# Genesis 🔎🧠⚖️
 
 ### Explainable Fact-Checking Through Multi-Agent Reasoning
 
 <p>
-  <img src="https://readme-typing-svg.demolab.com?font=Orbitron&weight=700&size=22&duration=2500&pause=700&color=22C55E&center=true&vCenter=true&width=960&lines=Agentic+Claim+Verification;RAG+%2B+Multi-LLM+Fallbacks;Prosecutor+vs+Defender+Debate" alt="VeritasAI typing banner" />
+  <img src="https://readme-typing-svg.demolab.com?font=Orbitron&weight=700&size=22&duration=2500&pause=700&color=22C55E&center=true&vCenter=true&width=960&lines=Agentic+Claim+Verification;RAG+%2B+Multi-LLM+Fallbacks;Prosecutor+vs+Defender+Debate" alt="Genesis typing banner" />
 </p>
 
 <p>
@@ -31,7 +31,7 @@
 
 ## 📋 Table of Contents
 
-- [What is VeritasAI?](#what-is-veritasai)
+- [What is Genesis?](#what-is-genesisai)
 - [Key Features](#key-features)
 - [System Architecture](#system-architecture)
 - [How It Works](#how-it-works)
@@ -47,9 +47,9 @@
 
 ---
 
-## What is VeritasAI?
+## What is Genesis?
 
-VeritasAI is an **explainable claim verification platform** that analyzes misinformation through multi-agent debate and evidence-based reasoning. Instead of providing a black-box verdict, it:
+Genesis is an **explainable claim verification platform** that analyzes misinformation through multi-agent debate and evidence-based reasoning. Instead of providing a black-box verdict, it:
 
 1. **Retrieves evidence** from multiple web sources using a hybrid RAG pipeline
 2. **Generates arguments** through competing AI agents (Prosecutor 🔨 and Defender 🛡️)
@@ -367,7 +367,7 @@ CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 # ═══════════════════════════════════════════════════════════════
 # DATABASE
 # ═══════════════════════════════════════════════════════════════
-DATABASE_URL=sqlite:///./veritas.db
+DATABASE_URL=sqlite:///./genesis.db
 
 # ═══════════════════════════════════════════════════════════════
 # SEARCH APIs
@@ -658,7 +658,7 @@ fake-news-ai/
 │   ├── requirements.txt              # Python dependencies
 │   ├── .env.example                  # Environment variable template
 │   ├── start.sh                      # Backend startup script
-│   └── veritas.db                    # SQLite database (auto-created)
+│   └── genesis.db                    # SQLite database (auto-created)
 │
 └── frontend/react-app/
     ├── package.json                  # Node dependencies
@@ -867,7 +867,7 @@ curl http://localhost:11434/api/version
 ```bash
 # SQLite file may be locked; restart backend
 pkill -f "uvicorn main:app"
-rm backend/veritas.db  # optional, resets state
+rm backend/genesis.db  # optional, resets state
 # Restart backend
 ```
 
@@ -954,6 +954,6 @@ Built with:
 
 **Made with ❤️ for transparent, explainable AI fact-checking**
 
-[⬆ Back to top](#veritasai-)
+[⬆ Back to top](#genesisai-)
 
 </div>

@@ -83,7 +83,7 @@ def test_emits_observability_logs(monkeypatch, caplog):
     import tavily
     monkeypatch.setattr(tavily, "TavilyClient", _FakeClient, raising=False)
 
-    with caplog.at_level(logging.INFO, logger="veritas.tavily"):
+    with caplog.at_level(logging.INFO, logger="genesis.tavily"):
         tc.search_tavily("hello world")
     text = "\n".join(caplog.messages)
     assert "TAVILY QUERY" in text

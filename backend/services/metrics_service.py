@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict
 
-LOGGER = logging.getLogger("veritas.metrics")
+LOGGER = logging.getLogger("genesis.metrics")
 
 
 def build_pipeline_metrics(

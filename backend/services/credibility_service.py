@@ -1,5 +1,5 @@
 """
-Dynamic credibility scoring for VeritasAI evidence sources.
+Dynamic credibility scoring for Genesis evidence sources.
 
 The public function returns an integer 0-100 score. Existing backend callers
 that expect 0-1 scores should divide by 100 or use credibility.score_source().

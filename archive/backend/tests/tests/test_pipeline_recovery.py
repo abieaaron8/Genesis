@@ -1,5 +1,5 @@
 """
-test_pipeline_recovery.py — Veritas AI Pipeline Recovery Tests
+test_pipeline_recovery.py — Genesis Pipeline Recovery Tests
 
 These 6 tests verify that the full pipeline is:
   1. Stable (no crashes)

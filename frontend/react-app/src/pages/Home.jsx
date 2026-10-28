@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUpRight, Clock3, Download, FileText, Menu, RotateCcw, Search, Sparkles, X } from "lucide-react";
+import { Clock3, Download, FileText, RotateCcw, X, ArrowUpRight } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -8,8 +8,7 @@ import ConfidenceGauge from "../components/ConfidenceGauge";
 import EvidenceCard from "../components/EvidenceCard";
 import PipelineProgress from "../components/PipelineProgress";
 import SkeletonCard from "../components/SkeletonCard";
-import VerdictBadge from "../components/VerdictBadge";
-import { exportPdf, getHistory, getHistoryDetails, verifyClaim } from "../services/api";
+import { exportPdf, getHistoryDetails, verifyClaim } from "../services/api";
 
 const STAGES = ["claim_analysis", "retrieval", "agent_reasoning", "verdict"];
 
@@ -42,7 +41,7 @@ const normalizeVerificationResult = (payload) => {
 
 const readCache = () => {
   try {
-    const parsed = JSON.parse(localStorage.getItem("veritas-results-cache") || "{}");
+    const parsed = JSON.parse(localStorage.getItem("genesis-results-cache") || "{}");
     const now = Date.now();
     return Object.fromEntries(Object.entries(parsed).filter(([, value]) => now - Number(value?.__savedAt || 0) < 15 * 60 * 1000));
   } catch {
@@ -52,8 +51,8 @@ const readCache = () => {
 
 const saveCache = (claim, payload) => {
   const cache = readCache();
-  localStorage.setItem("veritas-results-cache", JSON.stringify({ ...cache, [claim]: { ...payload, __savedAt: Date.now() } }));
-  localStorage.setItem("veritas-last-claim", claim);
+  localStorage.setItem("genesis-results-cache", JSON.stringify({ ...cache, [claim]: { ...payload, __savedAt: Date.now() } }));
+  localStorage.setItem("genesis-last-claim", claim);
 };
 
 const pipelineMessage = (stages) => {
@@ -71,18 +70,8 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
-  const [recentClaims, setRecentClaims] = useState([]);
   const [pdfLoading, setPdfLoading] = useState(false);
-  const [railOpen, setRailOpen] = useState(() => localStorage.getItem("genesis-rail-open") !== "false");
   const handledNavigation = useRef("");
-
-  const toggleRail = () => {
-    setRailOpen((open) => {
-      const next = !open;
-      localStorage.setItem("genesis-rail-open", String(next));
-      return next;
-    });
-  };
 
   const persist = useCallback((claimText, payload) => {
     if (claimText && payload) saveCache(claimText, payload);
@@ -140,16 +129,8 @@ function Home() {
     }
   }, [location.state, runVerification]);
 
-  useEffect(() => {
-    getHistory()
-      .then((rows) => setRecentClaims((rows || []).filter((row) => row?.claim_text).slice(0, 5)))
-      .catch(() => setRecentClaims([]));
-  }, [result]);
-
   const canSubmit = claim.trim().length > 2 && !loading;
   const stages = result?.stages || {};
-  const supporting = result?.evidence_summary?.supporting_count ?? result?.support_count ?? 0;
-  const contradicting = result?.evidence_summary?.contradicting_count ?? result?.contradict_count ?? 0;
   const relatedSources = useMemo(() => (result?.evidence || []).slice(0, 4), [result]);
 
   const handleDownloadPdf = async () => {
@@ -179,41 +160,8 @@ function Home() {
   };
 
   return (
-    <main className={`investigation-page ${railOpen ? "" : "rail-closed"}`}>
-      {railOpen && (
-      <aside className="workspace-rail" aria-label="Workspace">
-        <div className="rail-section">
-          <span className="eyebrow">Workspace</span>
-          <div className="rail-title"><span className="brand-mark">G</span><span>Genesis</span></div>
-        </div>
-        <div className="rail-section rail-nav">
-          <span className="eyebrow">Investigate</span>
-          <div className="rail-current"><Search size={16} /> New verification</div>
-        </div>
-        <div className="rail-section rail-history">
-          <div className="rail-section-heading"><span className="eyebrow">Recent</span><span className="rail-count">{recentClaims.length}</span></div>
-          {recentClaims.length === 0 ? <p className="rail-empty">Your recent checks will appear here.</p> : recentClaims.map((item) => (
-            <button key={item.id} className="rail-history-item" onClick={() => runVerification(item.claim_text)}>
-              <span>{item.claim_text}</span>
-              <ArrowUpRight size={14} aria-hidden="true" />
-            </button>
-          ))}
-        </div>
-        <div className="rail-footer">
-          <span className="status-dot" /> Evidence workspace
-        </div>
-      </aside>
-      )}
-
+    <main className="investigation-page">
       <section className="investigation-main">
-        <header className="workspace-header">
-          <div>
-            <button type="button" className="rail-toggle" onClick={toggleRail} aria-label={railOpen ? "Close workspace history" : "Open workspace history"} title={railOpen ? "Close workspace history" : "Open workspace history"}>
-              {railOpen ? <X size={17} /> : <Menu size={18} />}
-            </button>
-          </div>
-        </header>
-
         <section className="claim-composer">
           <div className="composer-label"><FileText size={17} /> Article or claim</div>
           <textarea
@@ -281,13 +229,6 @@ function Home() {
             </div>
 
             <aside className="verification-rail">
-              <section className={`verdict-panel verdict-${String(result.verdict).toLowerCase()}`}>
-                <div className="panel-kicker"><span className="eyebrow">Final verdict</span><Sparkles size={15} /></div>
-                <VerdictBadge verdict={result.verdict} />
-                <p>{result.evidence_summary?.summary || result.reasoning}</p>
-                <div className="verdict-split"><span><strong>{supporting}</strong> supporting</span><span><strong>{contradicting}</strong> contradicting</span></div>
-              </section>
-
               <section className="side-panel">
                 <div className="panel-heading"><span className="eyebrow">Confidence</span></div>
                 <ConfidenceGauge confidence={result.confidence} />

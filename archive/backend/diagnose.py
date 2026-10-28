@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 print("=" * 55)
-print("VERITASAI DIAGNOSTIC")
+print("GENESISAI DIAGNOSTIC")
 print("=" * 55)
 
 # ── Test 1: Ollama ──

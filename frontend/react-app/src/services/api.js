@@ -24,7 +24,7 @@ export const setAuthToken = (token) => {
   }
 };
 
-const savedToken = localStorage.getItem("veritas-token");
+const savedToken = localStorage.getItem("genesis-token");
 if (savedToken) {
   setAuthToken(savedToken);
 }
@@ -48,8 +48,8 @@ export const verifyClaim = async (claim) => {
 export const getHistoryResponse = async (token) => {
   const resolvedToken =
     token ||
-    localStorage.getItem("veritas-token") ||
-    sessionStorage.getItem("veritas-token") ||
+    localStorage.getItem("genesis-token") ||
+    sessionStorage.getItem("genesis-token") ||
     null;
 
   const headers = {};
@@ -87,8 +87,8 @@ export const getHistoryDetails = async (historyId) => {
 export const deleteHistoryClaim = async (historyId, token) => {
   const resolvedToken =
     token ||
-    localStorage.getItem("veritas-token") ||
-    sessionStorage.getItem("veritas-token") ||
+    localStorage.getItem("genesis-token") ||
+    sessionStorage.getItem("genesis-token") ||
     null;
 
   const headers = {};

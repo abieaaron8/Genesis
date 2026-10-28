@@ -1,4 +1,5 @@
 import copy
+import concurrent.futures
 import json
 import logging
 import os
@@ -23,7 +24,7 @@ from backend.rag.faiss_store import FaissStore
 from backend.rag.tavily_client import search_tavily, tavily_available
 from backend.services.ranking_service import compare_retrieval_modes, extract_keywords, rank_articles, recency_score
 
-LOGGER = logging.getLogger("veritas.retriever")
+LOGGER = logging.getLogger("genesis.retriever")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DOTENV_PATH = BASE_DIR / ".env"
@@ -82,6 +83,10 @@ HYBRID_SCORE_WEIGHT_KEYWORD = 0.4  # Weight for BM25 keyword score in hybrid sco
 
 API_MAX_RETRIES = 2
 API_RETRY_BACKOFF_BASE = 1.0  # seconds
+PROVIDER_TIMEOUT_SECONDS = max(
+    1.0,
+    float(os.getenv("GENESIS_PROVIDER_TIMEOUT_SECONDS", "8")),
+)
 
 BLACKLIST_TERMS = ["quora", "reddit", "blogspot"]
 
@@ -214,11 +219,8 @@ def _retry_request(url: str, params: dict, timeout: int = 15, max_retries: int =
         try:
             attempt_timeout = timeout + (attempt * 5)
             response = requests.get(url, params=params, timeout=attempt_timeout)
-            if response.status_code == 429 and attempt < max_retries:
-                wait = API_RETRY_BACKOFF_BASE * (2 ** attempt)
-                LOGGER.warning("[SEARCH] Rate limited (429), retrying in %.1fs (attempt %d/%d)", wait, attempt + 1, max_retries)
-                time.sleep(wait)
-                continue
+            if response.status_code == 429:
+                LOGGER.warning("[SEARCH] Rate limited (429); skipping retries for this provider call")
             return response
         except requests.exceptions.Timeout as exc:
             last_exc = exc
@@ -400,8 +402,8 @@ STOPWORDS = {
 MAX_AGE_DAYS = int(os.getenv("RAG_MAX_AGE_DAYS", "120"))
 API_CACHE_TTL_SECONDS = int(os.getenv("RAG_API_CACHE_TTL_SECONDS", "900"))
 API_CACHE_MAX_ITEMS = int(os.getenv("RAG_API_CACHE_MAX_ITEMS", "256"))
-DISABLE_ADVANCED_CACHE = os.getenv("VERITAS_DISABLE_ADVANCED_CACHE", "1") != "0"
-USE_ADVANCED_RAG = os.getenv("VERITAS_USE_ADVANCED_RAG", "0") == "1"
+DISABLE_ADVANCED_CACHE = os.getenv("GENESIS_DISABLE_ADVANCED_CACHE", "1") != "0"
+USE_ADVANCED_RAG = os.getenv("GENESIS_USE_ADVANCED_RAG", "0") == "1"
 
 _API_CACHE: "OrderedDict[tuple, dict]" = OrderedDict()
 
@@ -1235,6 +1237,70 @@ def _dedupe(articles: List[Dict]) -> List[Dict]:
     return deduped
 
 
+def _run_provider_with_timeout(
+    provider_name: str,
+    provider_call,
+    timeout_seconds: float = PROVIDER_TIMEOUT_SECONDS,
+) -> Tuple[List[Dict], Dict]:
+    """Run one provider with a hard wall-clock limit.
+
+    Provider SDKs do not all expose a request timeout. Running the call in a
+    cancellable future prevents one unavailable provider from blocking the
+    remaining retrieval chain or the frontend request indefinitely.
+    """
+    started = time.perf_counter()
+    LOGGER.info("[Retriever] %s started", provider_name)
+    executor = concurrent.futures.ThreadPoolExecutor(
+        max_workers=1,
+        thread_name_prefix=f"genesis-{provider_name.lower()}",
+    )
+    future = executor.submit(provider_call)
+    try:
+        articles, meta = future.result(timeout=timeout_seconds)
+        elapsed = time.perf_counter() - started
+        LOGGER.info(
+            "[Retriever] %s finished (%.2f s, %d results)",
+            provider_name,
+            elapsed,
+            len(articles or []),
+        )
+        result_meta = dict(meta or {})
+        result_meta["elapsed_seconds"] = round(elapsed, 3)
+        return list(articles or []), result_meta
+    except concurrent.futures.TimeoutError:
+        elapsed = time.perf_counter() - started
+        LOGGER.warning(
+            "[Retriever] %s timeout after %.2f s",
+            provider_name,
+            elapsed,
+        )
+        LOGGER.info("[Retriever] Continuing with remaining providers")
+        return [], {
+            "ok": False,
+            "error": f"{provider_name} provider timeout after {timeout_seconds:.1f}s",
+            "timeout": True,
+            "elapsed_seconds": round(elapsed, 3),
+        }
+    except Exception as exc:
+        elapsed = time.perf_counter() - started
+        LOGGER.warning(
+            "[Retriever] %s exception after %.2f s: %s",
+            provider_name,
+            elapsed,
+            str(exc)[:200],
+        )
+        return [], {
+            "ok": False,
+            "error": str(exc)[:200],
+            "exception": True,
+            "elapsed_seconds": round(elapsed, 3),
+        }
+    finally:
+        # Do not wait for a provider that ignored the timeout. The worker is
+        # isolated from the request path and its result is discarded.
+        executor.shutdown(wait=False, cancel_futures=True)
+
+
 def _gather_from_providers(query: str, top_n: int = 10) -> Tuple[List[Dict], Dict]:
     """Tavily-first provider chain: Tavily -> SerpAPI -> NewsAPI.
 
@@ -1242,47 +1308,66 @@ def _gather_from_providers(query: str, top_n: int = 10) -> Tuple[List[Dict], Dic
     downstream) and records per-provider counts and attempt order in meta.
     Never raises; a failing provider contributes 0 results.
     """
-    order: List[str] = []
+    order = ["tavily", "serpapi", "newsapi"]
+    provider_specs = {
+        "tavily": ("Tavily", lambda: search_tavily(query, top_n=top_n)),
+        "serpapi": ("SerpAPI", lambda: _search_serpapi(query, top_n=top_n)),
+        "newsapi": ("NewsAPI", lambda: _search_newsapi(query, top_n=top_n)),
+    }
+    provider_results: Dict[str, Tuple[List[Dict], Dict]] = {}
+
+    gather_executor = concurrent.futures.ThreadPoolExecutor(
+        max_workers=len(provider_specs),
+        thread_name_prefix="genesis-provider-gather",
+    )
+    try:
+        futures = {
+            name: gather_executor.submit(
+                _run_provider_with_timeout,
+                display_name,
+                provider_call,
+            )
+            for name, (display_name, provider_call) in provider_specs.items()
+        }
+        for name in order:
+            try:
+                provider_results[name] = futures[name].result(
+                    timeout=PROVIDER_TIMEOUT_SECONDS + 1.0,
+                )
+            except Exception as exc:
+                LOGGER.warning(
+                    "[Retriever] %s exception in gather: %s",
+                    provider_specs[name][0],
+                    str(exc)[:200],
+                )
+                provider_results[name] = [], {
+                    "ok": False,
+                    "error": str(exc)[:200],
+                    "exception": True,
+                }
+    finally:
+        gather_executor.shutdown(wait=False, cancel_futures=True)
+
     counts: Dict[str, int] = {}
     collected: List[Dict] = []
     provider_meta: Dict[str, Dict] = {}
+    for name in order:
+        articles, meta = provider_results.get(name, ([], {}))
+        counts[name] = len(articles)
+        provider_meta[name] = meta
+        collected.extend(articles)
 
-    # 1. Tavily (primary)
-    order.append("tavily")
-    try:
-        tav_articles, tav_meta = search_tavily(query, top_n=top_n)
-    except Exception as exc:  # defensive — search_tavily already guards
-        tav_articles, tav_meta = [], {"ok": False, "error": str(exc)[:200]}
-    counts["tavily"] = len(tav_articles)
-    provider_meta["tavily"] = tav_meta
-    collected.extend(tav_articles)
-
-    # 2. SerpAPI
-    order.append("serpapi")
-    try:
-        serp_articles, serp_meta = _search_serpapi(query, top_n=top_n)
-    except Exception as exc:
-        serp_articles, serp_meta = [], {"ok": False, "error": str(exc)[:200]}
-    counts["serpapi"] = len(serp_articles)
-    provider_meta["serpapi"] = serp_meta
-    collected.extend(serp_articles)
-
-    # 3. NewsAPI
-    order.append("newsapi")
-    try:
-        news_articles, news_meta = _search_newsapi(query, top_n=top_n)
-    except Exception as exc:
-        news_articles, news_meta = [], {"ok": False, "error": str(exc)[:200]}
-    counts["newsapi"] = len(news_articles)
-    provider_meta["newsapi"] = news_meta
-    collected.extend(news_articles)
-
+    gather_elapsed = sum(
+        float((provider_meta.get(name) or {}).get("elapsed_seconds", 0.0) or 0.0)
+        for name in ("tavily", "serpapi", "newsapi")
+    )
     LOGGER.info(
         "[Retriever] Provider gather query='%s' order=%s counts=%s",
         query,
         order,
         counts,
     )
+    LOGGER.info("[Retriever] Total retrieval time: %.2f s", gather_elapsed)
 
     meta = {
         "query": query,

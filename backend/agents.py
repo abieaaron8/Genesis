@@ -43,7 +43,7 @@ from backend.rag.retriever import retrieve_evidence
 from backend.services.credibility_service import calculate_credibility
 from backend.state import VerificationState
 
-LOGGER = logging.getLogger("veritas.graph")
+LOGGER = logging.getLogger("genesis.graph")
 
 
 ClaimState = Dict[str, Any]

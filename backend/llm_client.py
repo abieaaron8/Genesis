@@ -1,5 +1,5 @@
 """
-llm_client.py - VeritasAI LLM Client - Gemini + Ollama ONLY
+llm_client.py - Genesis LLM Client - Gemini + Ollama ONLY
 
 Architecture:
   Claim Analyzer     -> Ollama (llama3.2:1b, fast local)
@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
 
-LOGGER = logging.getLogger("veritas.llm")
+LOGGER = logging.getLogger("genesis.llm")
 
 # ============================================================
 # GEMINI CONFIGURATION
@@ -100,7 +100,7 @@ _groq_disabled_until = 0.0
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_ANALYZER_MODEL = os.getenv("OLLAMA_ANALYZER_MODEL", "llama3.2:1b")
 OLLAMA_REASONING_MODEL = os.getenv("OLLAMA_MODEL", "mistral:latest")
-OLLAMA_ENABLED = os.getenv("VERITAS_DISABLE_OLLAMA", "0") != "1"
+OLLAMA_ENABLED = os.getenv("GENESIS_DISABLE_OLLAMA", "0") != "1"
 
 # Backward-compatible aliases used by legacy modules.
 OLLAMA_ANALYZER = OLLAMA_ANALYZER_MODEL

@@ -178,7 +178,7 @@ def search_knowledge_base(claim: str) -> list:
             articles.append({
                 "title": f"Verified Fact: {key.title()}",
                 "content": fact,
-                "source": "VeritasAI Knowledge Base",
+                "source": "Genesis Knowledge Base",
                 "source_url": "",
                 "author": "Verified",
                 "published_date": "2026",

@@ -1,1 +1,1 @@
-"""Retrieval and embedding helpers for VeritasAI."""
+"""Retrieval and embedding helpers for Genesis."""

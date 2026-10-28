@@ -1,5 +1,5 @@
 """
-credibility.py - Compatibility wrapper for VeritasAI evidence ranking.
+credibility.py - Compatibility wrapper for Genesis evidence ranking.
 
 score_source() is intentionally kept as a 0-1 return value because ranking,
 judge, and legacy modules already consume that API.

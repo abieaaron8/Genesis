@@ -8,7 +8,7 @@
 - **Failing call:** `print(json.dumps(response_payload, indent=2))`
 - **Exception:** `OSError: [Errno 22] Invalid argument`
 
-`veritas_debug.log` records the request reaching `"[PIPELINE] Response
+`genesis_debug.log` records the request reaching `"[PIPELINE] Response
 serialization started"`, then raising this exception at the diagnostic
 `print`. The response payload had been built, but the exception interrupted
 the handler before `_save_history(...)` and `return response_payload`.

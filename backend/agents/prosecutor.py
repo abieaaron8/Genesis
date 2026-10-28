@@ -4,8 +4,8 @@ import logging
 import os
 import traceback
 
-LOGGER = logging.getLogger("veritas.prosecutor")
-ENABLE_LLM_AGENTS = os.getenv("VERITAS_ENABLE_LLM_AGENTS", "0") == "1"
+LOGGER = logging.getLogger("genesis.prosecutor")
+ENABLE_LLM_AGENTS = os.getenv("GENESIS_ENABLE_LLM_AGENTS", "0") == "1"
 
 
 def _clean_snippet(text: str, limit: int = 260) -> str:

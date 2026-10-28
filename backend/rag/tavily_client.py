@@ -1,5 +1,5 @@
 """
-tavily_client.py — VeritasAI Tavily search provider (PRIMARY).
+tavily_client.py — Genesis Tavily search provider (PRIMARY).
 
 Tavily is the primary web-search evidence provider in the retrieval chain
 (Tavily -> SerpAPI -> NewsAPI -> local). It requests raw_content so agents get
@@ -31,7 +31,7 @@ except Exception:  # pragma: no cover - defensive import
     def score_source(url: str) -> float:
         return 0.5
 
-LOGGER = logging.getLogger("veritas.tavily")
+LOGGER = logging.getLogger("genesis.tavily")
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
 

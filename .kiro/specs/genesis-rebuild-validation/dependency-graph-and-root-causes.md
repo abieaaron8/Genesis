@@ -10,7 +10,7 @@ Pre-implementation analysis. Built from the actual code (`main.py`, `agents.py`,
 - **Rollback refs created**:
   - git tag: `rollback-pre-tavily-refactor-20260531`
   - git branch: `rollback/pre-tavily-refactor`
-  - ZIP snapshot: `../veritas-backup-pre-tavily-20260531.zip` (2.0M; excludes `.venv`, `venv`, `node_modules`, caches)
+  - ZIP snapshot: `../genesis-backup-pre-tavily-20260531.zip` (2.0M; excludes `.venv`, `venv`, `node_modules`, caches)
 - **To restore**: `git reset --hard rollback-pre-tavily-refactor-20260531` (or `git checkout rollback/pre-tavily-refactor`), or unzip the archive.
 
 ## Complete request flow
@@ -55,7 +55,7 @@ flowchart TD
 
 ## Active vs dormant paths (key finding)
 
-- `retrieve_evidence()` branches on `VERITAS_USE_ADVANCED_RAG` (default `"0"`). **Active path = `retrieve_evidence_minimal()`** (SerpAPI + NewsAPI only, no FAISS). The documented FAISS hybrid path is dormant.
+- `retrieve_evidence()` branches on `GENESIS_USE_ADVANCED_RAG` (default `"0"`). **Active path = `retrieve_evidence_minimal()`** (SerpAPI + NewsAPI only, no FAISS). The documented FAISS hybrid path is dormant.
 - `agents.py` retrieval uses `rag/retriever.py`. `main.py` keeps a **second** retrieval stack (`retrieval.py` → `legacy/retrieval.py`) used only as a fallback inside `verify_claim`. This is the duplicate stack to remove (Task 4.2).
 - **Tavily**: not referenced anywhere. Only `TAVILY_API_KEY` exists. (Task 3 builds it.)
 
@@ -73,7 +73,7 @@ flowchart TD
 **Where:** `agents.py:_prosecutor_node`, `agents/prosecutor.py:run_prosecutor`, and `main.py` stance partition.
 **Root causes:**
 1. `_prosecutor_node` returns the canned "No contradictory evidence found." whenever `evidence` is empty (cascades from A).
-2. With evidence present but `VERITAS_ENABLE_LLM_AGENTS` flips, the deterministic `_deterministic_arguments` keeps only `classify_evidence == CONTRADICTS`. The keyword classifier returns **NEUTRAL** when claim-term overlap is low (`>=3 terms & overlap<2` → NEUTRAL), so a prosecutor with on-topic-but-not-lexically-matching sources gets **zero** arguments.
+2. With evidence present but `GENESIS_ENABLE_LLM_AGENTS` flips, the deterministic `_deterministic_arguments` keeps only `classify_evidence == CONTRADICTS`. The keyword classifier returns **NEUTRAL** when claim-term overlap is low (`>=3 terms & overlap<2` → NEUTRAL), so a prosecutor with on-topic-but-not-lexically-matching sources gets **zero** arguments.
 3. In `main.py`, `_partition_sources_by_stance` + `_extend_side_rows(side="prosecutor")` only keep rows with positive contradict margin; if everything classifies SUPPORTS/NEUTRAL, prosecutor cards are empty.
 **Fix (tasks 5, 6):** Evidence Preservation Rule (≥3 items to each agent), pass full list to both agents, log `PROSECUTOR INPUT/OUTPUT`, and ensure deterministic fallback still yields content.
 

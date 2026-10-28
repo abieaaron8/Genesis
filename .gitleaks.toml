@@ -1,4 +1,4 @@
-title = "veritasai-gitleaks-config"
+title = "genesisai-gitleaks-config"
 
 [allowlist]
 description = "Allow explicit placeholder values used in README examples"

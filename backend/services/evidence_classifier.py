@@ -3,8 +3,8 @@ import os
 import re
 from backend.llm_client import call_ollama, extract_json
 
-LOGGER = logging.getLogger("veritas.evidence_classifier")
-ENABLE_EVIDENCE_CLASSIFIER_LLM = os.getenv("VERITAS_ENABLE_EVIDENCE_CLASSIFIER_LLM", "0") == "1"
+LOGGER = logging.getLogger("genesis.evidence_classifier")
+ENABLE_EVIDENCE_CLASSIFIER_LLM = os.getenv("GENESIS_ENABLE_EVIDENCE_CLASSIFIER_LLM", "0") == "1"
 
 
 def _keyword_classify(claim: str, title: str, content: str) -> str:

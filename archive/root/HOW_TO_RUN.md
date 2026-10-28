@@ -1,4 +1,4 @@
-# How to Run VeritasAI (Step-by-Step)
+# How to Run Genesis (Step-by-Step)
 
 A simple checklist for starting the project from a fresh boot.
 You need **2 terminals**: one for the backend, one for the frontend.
@@ -135,7 +135,7 @@ After changing `.env`, restart `npm run dev`.
 **Verdicts look wrong / "No prosecutor analysis"**
 Make sure LLM agents are enabled in `backend/.env`:
 ```
-VERITAS_ENABLE_LLM_AGENTS=1
+GENESIS_ENABLE_LLM_AGENTS=1
 GROQ_API_KEY=gsk_...   (must be a valid Groq key)
 ```
 Restart the backend after editing `.env`.

@@ -165,7 +165,7 @@ function Register() {
         throw new Error("Missing token");
       }
 
-      localStorage.setItem("veritas-token", token);
+      localStorage.setItem("genesis-token", token);
       api.setAuthToken(token);
       navigate("/");
     } catch {
@@ -186,11 +186,11 @@ function Register() {
         >
           <div className="va-auth-logo">
             <ShieldIcon />
-            <span>VeritasAI</span>
+            <span>Genesis</span>
           </div>
 
           <h1 className="va-auth-heading">Create Your Account</h1>
-          <p className="va-auth-subtext">Join VeritasAI and start verifying claims.</p>
+          <p className="va-auth-subtext">Join Genesis and start verifying claims.</p>
 
           <form className="va-auth-form" onSubmit={handleSubmit}>
             <motion.div className="va-field" variants={fieldVariants} initial="hidden" animate="visible" custom={0}>
@@ -303,7 +303,7 @@ function Register() {
           </p>
 
           <div className="va-footer">
-            <span>Copyright © 2025 VeritasAI</span>
+            <span>Copyright © 2025 Genesis</span>
             <a href="#">Privacy Policy</a>
           </div>
         </motion.section>

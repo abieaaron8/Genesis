@@ -22,13 +22,13 @@ function Profile({ user, onLogout }) {
   const navigate = useNavigate();
   const [notice, setNotice] = useState("");
   const [prefs, setPrefs] = useState(() => ({
-    emailUpdates: localStorage.getItem("veritas-pref-email-updates") !== "off",
-    saveLocalCache: localStorage.getItem("veritas-pref-save-cache") !== "off",
+    emailUpdates: localStorage.getItem("genesis-pref-email-updates") !== "off",
+    saveLocalCache: localStorage.getItem("genesis-pref-save-cache") !== "off",
   }));
 
   const cacheCount = useMemo(() => {
     try {
-      const cache = JSON.parse(localStorage.getItem("veritas-results-cache") || "{}");
+      const cache = JSON.parse(localStorage.getItem("genesis-results-cache") || "{}");
       return Object.keys(cache || {}).length;
     } catch {
       return 0;
@@ -42,22 +42,22 @@ function Profile({ user, onLogout }) {
     return dt.toLocaleString();
   }, [user?.created_at]);
 
-  const tokenPresent = Boolean(localStorage.getItem("veritas-token"));
+  const tokenPresent = Boolean(localStorage.getItem("genesis-token"));
 
   const setPreference = (key, value) => {
     setPrefs((prev) => ({ ...prev, [key]: value }));
 
     if (key === "emailUpdates") {
-      localStorage.setItem("veritas-pref-email-updates", value ? "on" : "off");
+      localStorage.setItem("genesis-pref-email-updates", value ? "on" : "off");
     }
     if (key === "saveLocalCache") {
-      localStorage.setItem("veritas-pref-save-cache", value ? "on" : "off");
+      localStorage.setItem("genesis-pref-save-cache", value ? "on" : "off");
     }
   };
 
   const clearLocalAnalysisCache = () => {
-    localStorage.removeItem("veritas-results-cache");
-    localStorage.removeItem("veritas-last-claim");
+    localStorage.removeItem("genesis-results-cache");
+    localStorage.removeItem("genesis-last-claim");
     setNotice("Local analysis cache cleared.");
   };
 

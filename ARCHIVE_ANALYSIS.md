@@ -171,10 +171,10 @@
 
 | File | Classification | Reason |
 |------|---------------|--------|
-| `README.md` | **ARCHIVE** | VeritasAI readme, will be replaced with Genesis readme |
+| `README.md` | **ARCHIVE** | Genesis readme, will be replaced with Genesis readme |
 | `README_FINAL_BACKUP.md` | **DELETE** | Backup file |
 | `PROJECT_RUNTIME_CONTEXT.md` | **ARCHIVE** | Context doc for previous project |
-| `HOW_TO_RUN.md` | **ARCHIVE** | Run guide for VeritasAI |
+| `HOW_TO_RUN.md` | **ARCHIVE** | Run guide for Genesis |
 | `docker-compose.yml` | **ARCHIVE** | Docker config with Neo4j (optional profile) |
 | `.env.example` (if exists) | **ARCHIVE** | Example env file |
 

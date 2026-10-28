@@ -3,7 +3,7 @@ __pycache__
 venv
 .venv
 *.log
-veritas.db
+genesis.db
 data
 tmp
 .env

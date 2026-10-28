@@ -37,12 +37,12 @@ function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("veritas-theme", theme);
+    localStorage.setItem("genesis-theme", theme);
   }, [theme]);
 
   useEffect(() => {
     const loadUser = async () => {
-      const token = localStorage.getItem("veritas-token");
+      const token = localStorage.getItem("genesis-token");
       if (!token) {
         setCurrentUser(null);
         setAuthToken(null);
@@ -55,7 +55,7 @@ function App() {
         const me = await getMe();
         setCurrentUser(me);
       } catch {
-        localStorage.removeItem("veritas-token");
+        localStorage.removeItem("genesis-token");
         setAuthToken(null);
         setCurrentUser(null);
       } finally {
@@ -73,7 +73,7 @@ function App() {
   }, [currentUser]);
 
   const logout = () => {
-    localStorage.removeItem("veritas-token");
+    localStorage.removeItem("genesis-token");
     setAuthToken(null);
     setCurrentUser(null);
     setProfileOpen(false);

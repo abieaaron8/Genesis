@@ -43,8 +43,8 @@ function History() {
 
   useEffect(() => {
     const token =
-      localStorage.getItem("veritas-token") ||
-      sessionStorage.getItem("veritas-token") ||
+      localStorage.getItem("genesis-token") ||
+      sessionStorage.getItem("genesis-token") ||
       null;
     setIsAuthenticated(Boolean(token));
     fetchHistory(token);

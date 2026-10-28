@@ -1,14 +1,14 @@
 # Design Document
 
-VeritasAI Reset, Rebuild, Fix & Validate
+Genesis Reset, Rebuild, Fix & Validate
 
 ## Overview
 
-This design describes how to reset, repair, and validate VeritasAI so that it runs reliably in **Local Development mode** (primary, per decision) with Docker rebuilt and validated afterward. The central technical change is consolidating evidence retrieval into a **single pipeline in `backend/rag/retriever.py`** with a **Tavily-first provider chain**, eliminating the duplicate `legacy/retrieval.py` stack that `main.py` currently uses as a fallback.
+This design describes how to reset, repair, and validate Genesis so that it runs reliably in **Local Development mode** (primary, per decision) with Docker rebuilt and validated afterward. The central technical change is consolidating evidence retrieval into a **single pipeline in `backend/rag/retriever.py`** with a **Tavily-first provider chain**, eliminating the duplicate `legacy/retrieval.py` stack that `main.py` currently uses as a fallback.
 
 The work is grounded in a real code audit. Key facts driving the design:
 
-- `retrieve_evidence()` branches on `VERITAS_USE_ADVANCED_RAG` (default `"0"`), so the **active path today is `retrieve_evidence_minimal()`** (SerpAPI + NewsAPI, no FAISS).
+- `retrieve_evidence()` branches on `GENESIS_USE_ADVANCED_RAG` (default `"0"`), so the **active path today is `retrieve_evidence_minimal()`** (SerpAPI + NewsAPI, no FAISS).
 - `agents.py` calls `rag.retriever.retrieve_evidence`. `main.py` separately imports `search_serpapi/search_newsapi/...` from `retrieval.py` → `legacy/retrieval.py` and uses them as a **secondary fallback** inside `verify_claim`. This is the duplicate stack to remove.
 - **No Tavily code exists anywhere.** Only the `TAVILY_API_KEY` env var is present.
 - The agent layer already has the right shape: `run_prosecutor`, `run_defender`, `run_judge`, a deterministic stance fallback, and a transparent `_normalize_confidence()` in `main.py`. The reasoning chain is **Groq → Gemini → Ollama** (the README's "Gemini primary" is outdated). The fixes here are about **guaranteeing evidence reaches the agents** and **logging**, not rewriting the agents.
@@ -42,7 +42,7 @@ flowchart TD
     Prov["Provider chain"]
     Agents["Prosecutor / Defender / Judge"]
     LLM["LLM chain: Groq → Gemini → Ollama → deterministic"]
-    DB["SQLite (veritas.db)"]
+    DB["SQLite (genesis.db)"]
     Neo["Neo4j (optional, off by default)"]
 
     UI -->|POST /api/verify| API
@@ -75,7 +75,7 @@ Results from all reached providers are **merged → normalized → deduplicated 
 - `agents.py` continues to import `retrieve_evidence` from `rag/retriever.py` (unchanged import).
 - `main.py`'s legacy fallback block (`search_serpapi/search_newsapi/merge_results/filter_relevant_results/calculate_relevance` from `retrieval.py`) is **replaced by a single call into `retriever.py`** (e.g., a `retrieve_evidence` call or a thin `retrieve_for_api()` wrapper). The `from retrieval import (...)` block in `main.py` is removed.
 - `retrieval.py` and `backend/legacy/retrieval.py` are **retired** (kept only if any test imports them; otherwise the re-export shim is deleted). No new stack is introduced.
-- Decision on `VERITAS_USE_ADVANCED_RAG`: standardize the **single `retrieve_evidence`** so Tavily-first runs regardless of the flag. The flag then only toggles the optional FAISS re-rank stage inside the unified path (documented), removing the silent "minimal vs advanced" divergence.
+- Decision on `GENESIS_USE_ADVANCED_RAG`: standardize the **single `retrieve_evidence`** so Tavily-first runs regardless of the flag. The flag then only toggles the optional FAISS re-rank stage inside the unified path (documented), removing the silent "minimal vs advanced" divergence.
 
 ---
 
@@ -235,7 +235,7 @@ A successful `/api/verify` response SHALL include `evidence`, `prosecutor`, `def
 - **Provider failure**: each provider call wrapped; failure logs a warning and returns empty, chain continues. Missing `TAVILY_API_KEY` → Tavily skipped, not fatal.
 - **No evidence after all providers**: return `INSUFFICIENT_DATA` meta; agents short-circuit to no-evidence responses (existing behavior); Judge returns `INSUFFICIENT_DATA`. This is the legitimate path for genuinely evidence-less claims (e.g., Claim 7) — but Tavily-first should materially reduce false empties.
 - **Agent LLM failure**: `call_reasoning` already falls Groq→Gemini→Ollama; agents fall back to deterministic stance logic; nodes catch exceptions and return structured failure without crashing the request.
-- **Cleanup safety**: Docker removals scoped to project (compose project name / `veritas_*` volumes); shared Ollama and unrelated containers untouched.
+- **Cleanup safety**: Docker removals scoped to project (compose project name / `genesis_*` volumes); shared Ollama and unrelated containers untouched.
 
 ---
 

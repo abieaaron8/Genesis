@@ -27,7 +27,7 @@ POST /api/verify
   -> backend.agents.run_claim_graph()
   -> backend.agents._retriever_node()
   -> backend.rag.retriever.retrieve_evidence()
-  -> retrieve_evidence_minimal() because VERITAS_USE_ADVANCED_RAG=0
+  -> retrieve_evidence_minimal() because GENESIS_USE_ADVANCED_RAG=0
   -> _gather_from_providers()
   -> search_tavily(), _search_serpapi(), _search_newsapi()
   -> filtering and ranking
@@ -48,7 +48,7 @@ POST /api/verify
 | `search_tavily` | generated query | normalized Tavily articles and metadata | Yes in fresh process | Empty in stale process |
 | `_search_newsapi` | generated query | normalized NewsAPI articles and metadata | Yes in fresh process | Empty in stale process |
 | `_search_serpapi` | generated query | normalized SerpAPI articles | No results because no SerpAPI key | Not used for successful evidence |
-| FAISS branch | candidate articles | in-memory similarity ranking | No | Disabled because `VERITAS_USE_ADVANCED_RAG=0` |
+| FAISS branch | candidate articles | in-memory similarity ranking | No | Disabled because `GENESIS_USE_ADVANCED_RAG=0` |
 | prosecutor/defender | filtered evidence | arguments and strengths | Yes | No |
 | judge | claim, arguments, evidence | verdict/confidence/reasoning | Yes | DistilBERT is not passed directly to judge |
 | response serialization | `top_results` | JSON `evidence` list | Yes | No |
@@ -133,14 +133,14 @@ FAISS exists in:
 
 The active request path did not use a persisted FAISS index. The advanced
 branch creates an in-memory `FaissStore` from the current request's documents,
-but `VERITAS_USE_ADVANCED_RAG=0` selects the minimal path.
+but `GENESIS_USE_ADVANCED_RAG=0` selects the minimal path.
 
 ## Cache audit
 
 Relevant cache/history surfaces found:
 
 - `backend/rag/retriever.py`: in-memory `_API_CACHE`, disabled by default when
-  `VERITAS_DISABLE_ADVANCED_CACHE` is not set to `0`
+  `GENESIS_DISABLE_ADVANCED_CACHE` is not set to `0`
 - `backend/database.py`: SQLite `claim_cache`, bypassed because
   `backend.main.ENABLE_ADVANCED_CACHE = False`
 - `backend/services/cache_service.py`: response metadata helper

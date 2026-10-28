@@ -1,15 +1,15 @@
 # Requirements Document
 
-VeritasAI Reset, Rebuild, Fix & Validate
+Genesis Reset, Rebuild, Fix & Validate
 
 ## Introduction
 
-VeritasAI is an explainable, multi-agent fact-checking platform (React + Vite frontend, FastAPI + LangGraph backend, RAG evidence retrieval, multi-LLM reasoning chain, SQLite persistence, optional Neo4j, PDF export, JWT auth). Recent Docker and Tavily changes left the system in an inconsistent state that must be reset, audited, repaired, and validated end to end.
+Genesis is an explainable, multi-agent fact-checking platform (React + Vite frontend, FastAPI + LangGraph backend, RAG evidence retrieval, multi-LLM reasoning chain, SQLite persistence, optional Neo4j, PDF export, JWT auth). Recent Docker and Tavily changes left the system in an inconsistent state that must be reset, audited, repaired, and validated end to end.
 
 A Phase 1 code audit established the **actual** (not documented) state of the repository. The most important findings that shape these requirements:
 
 - **Tavily is not integrated in code.** `TAVILY_API_KEY` exists in `backend/.env`, but no module, package, or call references Tavily anywhere. It must be built, not merely audited.
-- **Advanced RAG is disabled by default.** `rag/retriever.py` branches on `VERITAS_USE_ADVANCED_RAG` (default `"0"`); the active path is `retrieve_evidence_minimal`, not the documented FAISS hybrid pipeline. The real `backend/.env` does not set this flag.
+- **Advanced RAG is disabled by default.** `rag/retriever.py` branches on `GENESIS_USE_ADVANCED_RAG` (default `"0"`); the active path is `retrieve_evidence_minimal`, not the documented FAISS hybrid pipeline. The real `backend/.env` does not set this flag.
 - **Two parallel retrieval stacks exist** (`legacy/retrieval.py` re-exported by `retrieval.py`, used by `main.py`; and `rag/retriever.py`, used by `agents.py`).
 - **Docker env is degraded:** `.env.docker` has `GEMINI_API_KEY=DISABLED` and no `TAVILY_API_KEY`.
 - **Secrets are committed** in `backend/.env` and `.env.docker` (Groq, Gemini, SerpAPI, NewsAPI, Tavily, DeepSeek).
@@ -78,7 +78,7 @@ This document defines the requirements for restoring the system to a fully opera
 1. THE system SHALL trace the pipeline: User Claim → Query Generation → Tavily Search → Search Filtering → FAISS → Neo4j (optional) → Defender → Prosecutor → Judge → Verdict, printing actual data (counts and samples) at each step.
 2. WHEN evidence is empty after filtering THEN the system SHALL log which stage removed the evidence and why (similarity, keyword, domain, credibility, age).
 3. THE system SHALL select a single, consistent active retrieval path and ensure the API entrypoint and the agent graph use the same retrieval implementation OR document why they differ.
-4. WHERE the advanced RAG path is intended THE system SHALL ensure `VERITAS_USE_ADVANCED_RAG` is set consistently with the chosen behavior and validated.
+4. WHERE the advanced RAG path is intended THE system SHALL ensure `GENESIS_USE_ADVANCED_RAG` is set consistently with the chosen behavior and validated.
 5. WHEN source ranking runs THEN supporting and contradicting evidence SHALL both be retained (the pipeline SHALL NOT discard all opposing evidence) so the Prosecutor and Defender each receive usable material.
 6. WHEN the pipeline finishes THEN every retained evidence item SHALL be mapped to fields the frontend expects (no missing mappings between backend response and UI cards).
 

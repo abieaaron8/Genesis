@@ -13,7 +13,7 @@ except Exception:
 
 load_dotenv()
 
-LOGGER = logging.getLogger("veritas.graph_store")
+LOGGER = logging.getLogger("genesis.graph_store")
 
 
 class GraphStore:
